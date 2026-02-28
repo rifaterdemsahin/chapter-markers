@@ -3,157 +3,168 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>12K Ultra-HD Chapter Markers</title>
+    <title>12K Pro Chapter Editor</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
-            --bg-color: #f4f4f4;
-            --text-color: #000;
+            --bg: #ffffff;
+            --fg: #000000;
         }
 
         body {
-            font-family: 'Inter', -apple-system, sans-serif;
-            background: var-bg-color;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: #1a1a1a; /* Dark background for the UI */
+            color: white;
             margin: 0;
-            padding: 2vw;
+            padding: 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
         }
 
-        /* Editor Section */
-        .controls {
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-            margin-bottom: 40px;
-            width: 80%;
-            max-width: 600px;
-            display: flex;
-            flex-direction: column;
+        /* Floating Editor UI */
+        .editor-panel {
+            background: #222;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            margin-bottom: 30px;
+            width: 90%;
+            max-width: 700px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             gap: 15px;
+            border: 1px solid #444;
+            position: sticky;
+            top: 20px;
+            z-index: 100;
         }
 
-        textarea {
-            width: 100%;
-            height: 60px;
-            padding: 10px;
-            border: 2px solid #000;
+        .input-group { display: flex; flex-direction: column; gap: 8px; }
+        
+        label { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: #888; }
+
+        input {
+            padding: 12px;
+            background: #000;
+            border: 1px solid #555;
+            color: #fff;
             font-size: 1rem;
-            box-sizing: border-box;
+            border-radius: 4px;
         }
 
-        .btn-group { display: flex; gap: 10px; }
+        .full-width { grid-column: span 2; }
+
+        .btn-group { grid-column: span 2; display: flex; gap: 10px; margin-top: 10px; }
 
         button {
             flex: 1;
-            padding: 12px;
-            background: #000;
-            color: #fff;
+            padding: 15px;
+            background: #fff;
+            color: #000;
             border: none;
             cursor: pointer;
-            font-weight: bold;
+            font-weight: 900;
             text-transform: uppercase;
+            transition: 0.2s;
         }
 
-        button:hover { background: #333; }
+        button.download-btn { background: #333; color: white; border: 1px solid #555; }
+        button:hover { opacity: 0.8; transform: translateY(-2px); }
 
-        /* Preview Canvas */
+        /* 12K VIEWPORT AREA */
         #capture-area {
-            background: #fff;
-            padding: 5vw;
+            background: var(--bg);
+            color: var(--fg);
+            width: 95vw;
+            padding: 10vw 2vw;
             display: flex;
             flex-direction: column;
-            gap: 8vw; /* Space for 12K viewing */
-            width: 90vw;
-            border: 1px solid #ddd;
+            gap: 15vh;
+            align-items: center;
         }
 
-        /* --- VERSION 1: BRUTALIST --- */
-        .v1 {
-            border-left: 1.5vw solid #000;
-            padding-left: 3vw;
-        }
-        .v1 .num { font-size: 2vw; font-weight: 300; letter-spacing: 0.5vw; color: #666; display: block; }
-        .v1 .title { font-size: 8vw; font-weight: 900; text-transform: uppercase; line-height: 0.9; }
+        /* VERSION 1: THE BOLD STRIKE */
+        .v1 { border-left: 2vw solid #000; padding-left: 4vw; width: 80%; }
+        .v1 .ch-num { font-size: 2.5vw; font-weight: 300; letter-spacing: 1vw; display: block; margin-bottom: 1vw; color: #555; }
+        .v1 .ch-title { font-size: 10vw; font-weight: 900; text-transform: uppercase; line-height: 0.85; display: block; }
 
-        /* --- VERSION 2: INVERTED BADGE --- */
-        .v2 {
-            background: #000;
-            color: #fff;
-            padding: 2vw 4vw;
-            display: inline-block;
-        }
-        .v2 .num { font-size: 2vw; border-bottom: 2px solid #fff; margin-bottom: 1vw; display: inline-block; }
-        .v2 .title { font-size: 7vw; font-weight: 700; display: block; }
+        /* VERSION 2: THE MONOLITH (INVERTED) */
+        .v2 { background: #000; color: #fff; padding: 4vw 6vw; text-align: center; min-width: 60%; }
+        .v2 .ch-num { font-size: 2vw; border: 2px solid #fff; padding: 0.5vw 2vw; display: inline-block; margin-bottom: 2vw; }
+        .v2 .ch-title { font-size: 8vw; font-weight: 800; display: block; text-transform: uppercase; letter-spacing: -0.2vw; }
 
-        /* --- VERSION 3: MODERN BORDER --- */
-        .v3 {
-            border: 0.5vw solid #000;
-            padding: 3vw;
-            text-align: center;
-            position: relative;
-        }
-        .v3 .num { 
-            position: absolute; top: -1.5vw; left: 50%; transform: translateX(-50%);
-            background: #fff; padding: 0 1vw; font-size: 1.5vw; font-weight: bold;
-        }
-        .v3 .title { font-size: 6vw; font-style: italic; font-family: serif; }
+        /* VERSION 3: THE CLASSIC SERIF */
+        .v3 { border-top: 0.8vw solid #000; border-bottom: 0.8vw solid #000; padding: 3vw 0; text-align: center; width: 70%; }
+        .v3 .ch-num { font-size: 3vw; font-family: serif; font-style: italic; display: block; margin-bottom: 1vw; }
+        .v3 .ch-title { font-size: 9vw; font-weight: 400; font-family: serif; text-transform: uppercase; letter-spacing: 0.5vw; }
 
     </style>
 </head>
 <body>
 
-    <div class="controls">
-        <label><strong>Edit Chapter Title:</strong></label>
-        <textarea id="inputTitle" oninput="updateText()">THE UNKNOWN FRONTIER</textarea>
+    <div class="editor-panel">
+        <div class="input-group">
+            <label>Label (e.g. Chapter 01)</label>
+            <input type="text" id="inNum" value="CHAPTER 01" oninput="update()">
+        </div>
+        <div class="input-group">
+            <label>Title</label>
+            <input type="text" id="inTitle" value="DEEP SPACE" oninput="update()">
+        </div>
         <div class="btn-group">
-            <button onclick="takeScreenshot()">📸 Save as Screenshot</button>
-            <button onclick="downloadHTML()">💾 Download HTML</button>
+            <button onclick="takeScreenshot()">📸 Export PNG (High Res)</button>
+            <button class="download-btn" onclick="downloadHTML()">💾 Download Code</button>
         </div>
     </div>
 
     <div id="capture-area">
         <div class="v1">
-            <span class="num">CHAPTER 01</span>
-            <span class="title" id="out1">THE UNKNOWN FRONTIER</span>
+            <span class="ch-num" id="outNum1">CHAPTER 01</span>
+            <span class="ch-title" id="outTitle1">DEEP SPACE</span>
         </div>
 
         <div class="v2">
-            <span class="num">01</span>
-            <span class="title" id="out2">THE UNKNOWN FRONTIER</span>
+            <span class="ch-num" id="outNum2">CHAPTER 01</span>
+            <span class="ch-title" id="outTitle2">DEEP SPACE</span>
         </div>
 
         <div class="v3">
-            <span class="num">SECTION ONE</span>
-            <span class="title" id="out3">THE UNKNOWN FRONTIER</span>
+            <span class="ch-num" id="outNum3">CHAPTER 01</span>
+            <span class="ch-title" id="outTitle3">DEEP SPACE</span>
         </div>
     </div>
 
     <script>
-        function updateText() {
-            const val = document.getElementById('inputTitle').value;
-            document.getElementById('out1').innerText = val;
-            document.getElementById('out2').innerText = val;
-            document.getElementById('out3').innerText = val;
+        function update() {
+            const num = document.getElementById('inNum').value;
+            const title = document.getElementById('inTitle').value;
+            
+            // Update all versions
+            for(let i=1; i<=3; i++) {
+                document.getElementById('outNum' + i).innerText = num;
+                document.getElementById('outTitle' + i).innerText = title;
+            }
         }
 
         function takeScreenshot() {
-            html2canvas(document.querySelector("#capture-area")).then(canvas => {
+            const area = document.querySelector("#capture-area");
+            html2canvas(area, {
+                scale: 2, // Increases quality for high-res screens
+                backgroundColor: "#ffffff"
+            }).then(canvas => {
                 const link = document.createElement('a');
-                link.download = 'chapter-marker.png';
-                link.href = canvas.toDataURL();
+                link.download = '12k-chapter-marker.png';
+                link.href = canvas.toDataURL("image/png");
                 link.click();
             });
         }
 
         function downloadHTML() {
-            const htmlContent = document.documentElement.outerHTML;
-            const blob = new Blob([htmlContent], { type: 'text/html' });
+            const blob = new Blob([document.documentElement.outerHTML], { type: 'text/html' });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-            a.download = 'chapter-markers.html';
+            a.download = 'editor-export.html';
             a.click();
         }
     </script>
